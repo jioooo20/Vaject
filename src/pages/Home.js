@@ -1,4 +1,6 @@
 // Import component Bootstrap React (opsional)
+import React, { useEffect } from "react";
+import { loadFonts } from "../helpers/font";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
@@ -7,11 +9,14 @@ import Header from "../components/header";
 import pantai from "./img/pan.png";
 
 function Home() {
+  useEffect(() => {
+    loadFonts();
+  }, []);
   return (
     <div>
       <Header />
       <Container fluid>
-        <Row className="flex-column-reverse flex-xl-row" style={{ minHeight: "689px", fontFamily: "Verdana", position: "static", display: "flex", flexDirection: "row" }}>
+        <Row className="flex-column-reverse flex-xl-row min-vh-100" style={{ minHeight: "689px", fontFamily: "Verdana", position: "static", display: "flex", flexDirection: "row" }}>
           <Col style={{ backgroundColor: "#FFFDE3", display: "flex", alignItems: "center" }}>
             <div style={{ margin: "10% 10% 10% 10%", display: "flex", flexDirection: "column", alignContent: "center" }}>
               <h1 style={{ fontFamily: "Verdana" }}>Hello, I'm Violet Evergarden</h1>
@@ -99,19 +104,28 @@ function Home() {
             </div>
           </div>
         </Row>
-        <Row className="experience min-vh-100" style={{ backgroundColor: "#FFFDE3" }}>
-          <div className="subtitle" style={{ height: "150px", padding: "3% 7% 3% 7%", color: "#FFFDE3", backgroundColor: "gray"  }}>
+        <Row className="experience min-vh-100 d-flex flex-xl-column flex-column" style={{ backgroundColor: "#FFFDE3" }}>
+          <div className="subtitle" style={{ height: "150px", padding: "3% 7% 3% 7%", color: "#FFFDE3" }}>
             <h2 style={{ fontFamily: "Verdana", fontSize: "4rem", fontWeight: "bold", color: "#1C2056" }}>Experience</h2>
           </div>
-          <div className="konten" style={{ height: "100%",marginTop: "0px", padding: "3% 7% 3% 7%", color: "#1C2056", backgroundColor: "gray" }}>
-            <div className="name">wawaa</div>
-            <div className="date">awawaa</div>
-            <div className="description">
-              <ul>
-                <li>Lorem ipsum dolor sit amet</li>
-                <li>Lorem ipsum dolor sit amet</li>
-                <li>Lorem ipsum dolor sit amet</li>
-              </ul>
+          <div className="konten row" style={{ height: "100%", marginTop: "0px", padding: "3% 7% 3% 7%", fontFamily: "Merriweather", backgroundColor:"red"}}>
+            <div className="col-9" style={{ backgroundColor: "gray" }}>
+              <div className="name">
+                <h2>Web Developer</h2>
+              </div>
+              <div className="date" style={{ fontSize: "0.9rem" }}>
+                Aug - Sept 2023
+              </div>
+              <div className="description" style={{ fontSize: "1rem" }}>
+                <ul>
+                  <li>Lorem ipsum dolor sit amet</li>
+                  <li>Lorem ipsum dolor sit amet</li>
+                  <li>Lorem ipsum dolor sit amet</li>
+                </ul>
+              </div>
+            </div>
+            <div className="foto col-3 " style={{ backgroundColor: "blue"}}>
+              ajsdibgasg
             </div>
           </div>
         </Row>
