@@ -133,7 +133,7 @@ export default function Hero() {
               {/* Avatar placeholder */}
               <div className="absolute inset-8 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 dark:from-accent/15 dark:to-accent/5 flex items-center justify-center overflow-hidden">
                 <img
-                  src={`/public/images/profpic.webp`}
+                  src={`/images/profpic.webp`}
                   alt={personalData.name}
                   className="w-full h-full object-cover rounded-full"
                   onError={(e) => {
