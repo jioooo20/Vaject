@@ -43,7 +43,7 @@ export default function About() {
             <div className="absolute inset-0 rounded-2xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border overflow-hidden -rotate-3 hover:rotate-0 transition-transform duration-300">
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-accent/10 to-accent/5">
                 <img
-                  src={`https://ui-avatars.com/api/?name=Giovano+Alkandri&size=256&background=14b8a6&color=fff&bold=true`}
+                  src={`/public/images/profpic.webp`}
                   alt={personalData.name}
                   className="w-full h-full object-cover"
                   onError={(e) => {
