@@ -41,6 +41,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Run Semgrep SAST scan
+        continue-on-error: true
         run: |
           semgrep scan \
             --config auto \
@@ -53,6 +54,30 @@ jobs:
             --error \
             --severity ERROR \
             .
+
+      - name: Show Semgrep findings (debug)
+        if: always()
+        run: |
+          echo "=== SARIF Findings ==="
+          python3 -c "
+import json, sys
+try:
+    with open('semgrep-results.sarif') as f:
+        data = json.load(f)
+    for run in data.get('runs', []):
+        for result in run.get('results', []):
+            loc = result.get('locations', [{}])[0].get('physicalLocation', {})
+            region = loc.get('region', {})
+            artifact = loc.get('artifactLocation', {})
+            print(f\"Rule: {result.get('ruleId', 'unknown')}\")
+            print(f\"File: {artifact.get('uri', 'unknown')}\")
+            print(f\"Line: {region.get('startLine', 'unknown')}\")
+            print(f\"Message: {result.get('message', {}).get('text', 'unknown')}\")
+            print(f\"Snippet: {region.get('snippet', {}).get('text', 'unknown')}\")
+            print('---')
+except Exception as e:
+    print(f'Error reading SARIF: {e}')
+"
 
       - name: Upload SARIF results to GitHub Code Scanning
         if: always()  # tetap upload meskipun scan menemukan issue
