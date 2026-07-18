@@ -1,0 +1,150 @@
+# =============================================================================
+# PR Comment — Security Report di Pull Request
+# =============================================================================
+# Secara otomatis memposting ringkasan hasil security scan sebagai
+# comment di Pull Request. Comment akan di-update (bukan duplikat)
+# setiap kali ada push baru ke PR.
+#
+# Fungsi:
+#   - Post ringkasan severity breakdown
+#   - Tampilkan top 5 findings paling fatal
+#   - Link ke HTML report artifact
+#
+# Trigger: Hanya untuk pull_request event
+# =============================================================================
+
+name: PR Comment — Security Summary
+
+on:
+  workflow_run:
+    workflows: ["Security Pipeline"]
+    types:
+      - completed
+
+jobs:
+  pr-comment:
+    name: Post Security Summary to PR
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion != 'cancelled'
+
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
+
+    steps:
+      - name: Download findings.json artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: findings-json
+          path: /tmp/report
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Generate PR comment
+        id: generate-comment
+        run: |
+          if [ -f /tmp/report/findings.json ]; then
+            python3 -c "
+import json
+
+with open('/tmp/report/findings.json') as f:
+    data = json.load(f)
+
+summary = data.get('summary', {})
+total = data.get('total_findings', 0)
+findings = data.get('findings', [])
+
+# Build comment
+comment = '''## Security Scan Report
+
+| Severity | Count |
+|----------|-------|
+'''
+
+for sev in ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']:
+    cnt = summary.get(sev, 0)
+    comment += f\"'''| {sev} | {cnt} |\n\"''' 
+
+comment += f\"'''\n**Total:** {total} findings\n\"'''
+
+# Top 5 most fatal
+fatal = [f for f in findings if f['severity'] in ('CRITICAL', 'HIGH')][:5]
+if fatal:
+    comment += '''\n### Top Findings (Most Fatal)\n\n'''
+    for i, f in enumerate(fatal, 1):
+        loc = f.get('location', {})
+        loc_str = loc.get('file', '') or loc.get('url', '') or loc.get('package', '') or ''
+        line = loc.get('line', '')
+        if line:
+            loc_str += f':{line}'
+        comment += f\"'''{i}. **[{f['severity']}]** {f['tool_name']} — {f['title'][:100]}\n   _{loc_str}_\n\n\"'''
+
+comment += '''---
+[Download HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts)
+'''
+
+# Escape for GitHub Actions
+comment = comment.replace('%', '%25').replace('\\n', '%0A').replace('\\r', '%0D')
+print(f'comment={comment}')
+" > /tmp/comment.txt
+          else
+            echo "comment=Tidak ada hasil scan yang tersedia." > /tmp/comment.txt
+          fi
+
+      - name: Find PR number
+        id: find-pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            const prs = run.data.pull_requests;
+            if (prs && prs.length > 0) {
+              core.setOutput('pr_number', prs[0].number.toString());
+            } else {
+              core.setOutput('pr_number', '');
+            }
+
+      - name: Post or update PR comment
+        if: steps.find-pr.outputs.pr_number != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = parseInt('${{ steps.find-pr.outputs.pr_number }}');
+            const fs = require('fs');
+            const commentBody = fs.readFileSync('/tmp/comment.txt', 'utf8');
+
+            // Cari comment yang sudah ada dari workflow ini
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Security Scan Report')
+            );
+
+            if (botComment) {
+              // Update comment yang sudah ada
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody,
+              });
+            } else {
+              // Buat comment baru
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: commentBody,
+              });
+            }

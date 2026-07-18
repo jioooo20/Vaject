@@ -1,0 +1,97 @@
+# =============================================================================
+# SCA — Software Composition Analysis (Trivy + npm audit)
+# =============================================================================
+# Memindai dependency/library untuk menemukan CVE (Common Vulnerabilities
+# and Exposures) dari database NVD, GHSA (GitHub Advisory), dan OSV.
+#
+# Tool 1: Trivy  — multi-database CVE scanner (NVD + GHSA + OSV)
+#          Image: aquasecurity/trivy
+#          Scan:  filesystem (package.json, node_modules, lock files)
+#
+# Tool 2: npm audit — built-in Node.js security audit
+#          Cepat, zero config, sebagai lapisan tambahan
+# =============================================================================
+
+name: SCA — Dependency Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  trivy-fs:
+    name: Trivy Filesystem Scan
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-fs-results.sarif
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-fs-results.sarif
+          category: trivy-fs
+
+  npm-audit:
+    name: npm Audit
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        # --audit-level=high: hanya gagal jika ada HIGH atau CRITICAL
+        # --json: output JSON untuk processing lebih lanjut
+        run: |
+          npm audit --audit-level=high --json 2> npm-audit-results.json || true
+          # Parse JSON untuk menentukan apakah ada high/critical
+          HIGH=$(cat npm-audit-results.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('metadata',{}).get('vulnerabilities',{}).get('high',0))" 2>/dev/null || echo "0")
+          CRITICAL=$(cat npm-audit-results.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('metadata',{}).get('vulnerabilities',{}).get('critical',0))" 2>/dev/null || echo "0")
+          echo "High vulnerabilities: $HIGH"
+          echo "Critical vulnerabilities: $CRITICAL"
+          if [ "$HIGH" -gt "0" ] || [ "$CRITICAL" -gt "0" ]; then
+            echo "npm audit menemukan $HIGH high dan $CRITICAL critical vulnerability!"
+            cat npm-audit-results.json | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+vulns = d.get('vulnerabilities', {})
+for pkg, info in vulns.items():
+    sev = info.get('severity', '')
+    if sev in ('high', 'critical'):
+        print(f'  [{sev.upper()}] {pkg}: {info.get(\"title\", \"\")} - {info.get(\"range\", \"\")}')
+" 2>/dev/null || true
+            exit 1
+          fi
+          echo "npm audit: tidak ada high/critical vulnerabilities"

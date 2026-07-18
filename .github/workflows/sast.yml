@@ -1,0 +1,62 @@
+# =============================================================================
+# SAST — Semgrep (Static Application Security Testing)
+# =============================================================================
+# Melakukan static code analysis pada kode React/JS/TS untuk mendeteksi
+# pola insecure, vulnerabilities, dan security best practices.
+#
+# Tool:    Semgrep CE (Community Edition) — LGPL 2.1
+# Image:   semgrep/semgrep
+# Output:  SARIF → GitHub Code Scanning
+#
+# Rulesets:
+#   - auto          → auto-detect bahasa dan rules yang sesuai
+#   - p/owasp-top-ten → OWASP Top 10 vulnerabilities
+#   - p/react       → React-specific security rules
+#   - p/javascript  → JavaScript security rules
+#   - p/typescript  → TypeScript security rules (jika ada file .ts)
+# =============================================================================
+
+name: SAST - Semgrep
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  semgrep:
+    name: Semgrep SAST Scan
+    runs-on: ubuntu-latest
+    # Jalankan Semgrep di dalam container Docker
+    container:
+      image: semgrep/semgrep:latest
+
+    permissions:
+      contents: read          # hanya perlu read source code
+      security-events: write  # untuk upload SARIF ke GitHub Security tab
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep SAST scan
+        run: |
+          semgrep scan \
+            --config auto \
+            --config "p/owasp-top-ten" \
+            --config "p/react" \
+            --config "p/javascript" \
+            --config "p/typescript" \
+            --sarif \
+            --output semgrep-results.sarif \
+            --error \
+            --severity ERROR \
+            .
+
+      - name: Upload SARIF results to GitHub Code Scanning
+        if: always()  # tetap upload meskipun scan menemukan issue
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep-results.sarif
+          category: semgrep

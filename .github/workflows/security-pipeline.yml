@@ -1,0 +1,380 @@
+# =============================================================================
+# Unified Security Pipeline - Vaject
+# =============================================================================
+# Pipeline keamanan terintegrasi yang menjalankan semua security checks
+# secara terkoordinasi:
+#
+# Paralel:
+#   1. Secrets Scan (Gitleaks)
+#   2. SAST (Semgrep)
+#   3. SCA (Trivy fs + npm audit)
+#
+# Sequential (setelah paralel selesai):
+#   4. Container Scan (Docker build + Trivy image scan)
+#   5. DAST (OWASP ZAP Baseline)
+#
+# Final:
+#   6. Report Generator → unified HTML report
+#   7. Deploy (jika semua lolos)
+#
+# Setiap job memiliki permission minimum (least privilege).
+# Semua hasil scan diupload sebagai artifacts untuk report generator.
+# =============================================================================
+
+name: Security Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# ── Default permissions: read-only ─────────────────────────────────
+permissions:
+  contents: read
+
+jobs:
+
+  # ── 1. SECRETS SCAN ──────────────────────────────────────────────
+  secrets-scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload SARIF artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-results-secrets
+          path: ./*.sarif
+          retention-days: 30
+          if-no-files-found: ignore
+
+  # ── 2. SAST — Semgrep ────────────────────────────────────────────
+  sast:
+    name: SAST Semgrep
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config auto \
+            --config "p/owasp-top-ten" \
+            --config "p/react" \
+            --config "p/javascript" \
+            --config "p/typescript" \
+            --sarif \
+            --output /tmp/semgrep-results.sarif \
+            --error \
+            --severity ERROR \
+            .
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: /tmp/semgrep-results.sarif
+          category: semgrep
+
+      - name: Upload SARIF artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-results-sast
+          path: /tmp/*.sarif
+          retention-days: 30
+          if-no-files-found: ignore
+
+  # ── 3. SCA — Trivy + npm audit ───────────────────────────────────
+  sca:
+    name: SCA Trivy + npm audit
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          ignore-unfixed: true
+          format: sarif
+          output: /tmp/trivy-fs-results.sarif
+
+      - name: Upload Trivy SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: /tmp/trivy-fs-results.sarif
+          category: trivy-fs
+
+      - name: Setup Node.js for npm audit
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        continue-on-error: true
+        run: |
+          npm audit --audit-level=high --json 2> /tmp/npm-audit-results.json || true
+          # Cek dan fail jika ada high/critical
+          python3 -c "
+import json
+with open('/tmp/npm-audit-results.json') as f:
+    d = json.load(f)
+v = d.get('metadata', {}).get('vulnerabilities', {})
+high = v.get('high', 0)
+crit = v.get('critical', 0)
+print(f'npm audit: {high} high, {crit} critical')
+if high > 0 or crit > 0:
+    exit(1)
+" || exit 1
+
+      - name: Upload SCA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-results-sca
+          path: /tmp/*.sarif
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Upload npm audit artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-results-npm
+          path: /tmp/npm-audit-results.json
+          retention-days: 30
+          if-no-files-found: ignore
+
+  # ── 4. CONTAINER SCAN ────────────────────────────────────────────
+  container-scan:
+    name: Container Scan
+    runs-on: ubuntu-latest
+    needs: [sast, sca]
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: vaject:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Trivy image scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: image
+          image-ref: vaject:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          ignore-unfixed: true
+          format: sarif
+          output: /tmp/trivy-image-results.sarif
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: /tmp/trivy-image-results.sarif
+          category: trivy-image
+
+      - name: Upload container scan artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-results-container
+          path: /tmp/*.sarif
+          retention-days: 30
+          if-no-files-found: ignore
+
+  # ── 5. DAST — ZAP Baseline ───────────────────────────────────────
+  dast:
+    name: DAST ZAP Baseline
+    runs-on: ubuntu-latest
+    needs: [container-scan]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image for DAST
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: vaject-dast:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Start application container
+        run: |
+          docker run -d --name vaject-app -p 8080:80 vaject-dast:${{ github.sha }}
+
+      - name: Wait for application to be ready
+        run: |
+          echo "Menunggu aplikasi siap..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080 > /dev/null 2>&1; then
+              echo "Aplikasi siap!"
+              exit 0
+            fi
+            echo "  Menunggu... ($i/30)"
+            sleep 2
+          done
+          echo "Aplikasi tidak siap"
+          exit 1
+
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.15.0
+        with:
+          target: 'http://localhost:8080'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a -I'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifact_name: zap-baseline-report
+
+      - name: Download ZAP JSON report
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          name: zap-baseline-report
+          path: /tmp/zap-report
+
+      - name: Upload ZAP JSON as scan artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-results-dast
+          path: /tmp/zap-report/*.json
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Stop application container
+        if: always()
+        run: docker stop vaject-app && docker rm vaject-app
+
+  # ── 6. REPORT GENERATOR — Unified Security Report ─────────────────
+  generate-report:
+    name: Generate Security Report
+    runs-on: ubuntu-latest
+    needs: [secrets-scan, sast, sca, container-scan, dast]
+    if: always()  # Tetap jalan meskipun ada job yang gagal
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all scan results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: scan-results-*
+          path: /tmp/scan-results/
+          merge-multiple: true
+
+      - name: Download ZAP results
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          pattern: zap-*
+          path: /tmp/scan-results/
+          merge-multiple: true
+          continue-on-error: true
+
+      - name: List downloaded scan results
+        run: |
+          echo "File hasil scan yang ditemukan:"
+          find /tmp/scan-results/ -type f 2>/dev/null | sort || echo "  (tidak ada file)"
+          echo ""
+          echo "Jumlah file: $(find /tmp/scan-results/ -type f 2>/dev/null | wc -l)"
+
+      - name: Generate unified security report
+        id: report
+        continue-on-error: true
+        run: |
+          python3 .github/scripts/generate-security-report.py \
+            --input-dir /tmp/scan-results \
+            --output-dir ./reports \
+            --github-summary \
+            --verbose
+
+      - name: Upload HTML report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: ./reports/
+          retention-days: 90
+          compression-level: 6
+
+      - name: Upload findings JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: findings-json
+          path: ./reports/findings.json
+          retention-days: 90
+
+      - name: Fail pipeline if CRITICAL/HIGH findings
+        if: steps.report.outcome == 'failure'
+        run: |
+          echo "Pipeline gagal karena ditemukan CRITICAL/HIGH findings."
+          echo "Lihat detail di artifact: security-report/security-report.html"
+          exit 1
+
+  # ── 7. DEPLOY (placeholder — hanya jika semua lolos) ──────────────
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [generate-report]
+    if: success() && github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Download security report
+        uses: actions/download-artifact@v4
+        with:
+          name: security-report
+          path: ./reports
+
+      - name: Deploy application
+        run: |
+          echo "============================================"
+          echo "  Semua security check lulus!"
+          echo "  Deploy ke production..."
+          echo "============================================"
+          # TODO: Tambahkan deploy step sesuai target
+          # Contoh: docker push, ssh deploy, etc.
+          echo "  Security report: reports/security-report.html"

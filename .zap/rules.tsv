@@ -1,0 +1,58 @@
+# =============================================================================
+# ZAP Rules File — Alert Filtering & False Positive Management
+# =============================================================================
+# Format: TSV (Tab Separated Values)
+# Kolom: Alert ID \t New Severity \t Notes
+#
+# Alert ID:  ID dari ZAP alert (angka)
+# New Severity: 0 = INFO, 1 = LOW, 2 = MEDIUM, 3 = HIGH (IGNORE = -1)
+# Notes:        Alasan kenapa alert di-ignore atau di-lower severity
+#
+# Cara mendapatkan Alert ID:
+#   1. Jalankan ZAP scan
+#   2. Buka report HTML atau JSON
+#   3. Cari "alertId" atau "pluginId" di setiap alert
+#
+# Referensi: https://www.zaproxy.org/docs/desktop/ui/dialogs/options/alertfilters/
+# =============================================================================
+
+# ── False Positives untuk Static Site (Vaject) ──────────────────────
+
+# 10038	-1	Content-Type header diatur oleh Nginx, bukan aplikasi
+# 10038 adalah "Content-Type Header Missing" — Nginx secara default
+# sudah mengatur Content-Type berdasarkan ekstensi file.
+
+# 10095	-1	Backup file detection — static site tidak punya backup file
+# yang bisa diakses via web.
+
+# 10107	-1	HTTP To HTTPS — tidak relevan untuk localhost testing.
+# Di production, reverse proxy yang handle HTTPS.
+
+# 10202	-1	Absolute URL exposure — static site memang punya absolute URL
+# di HTML, ini bukan vulnerability.
+
+# ── Informational (dicatat tapi tidak perlu difailkan) ──────────────
+
+# 10021	0	X-Content-Type-Options header — INFO saja untuk localhost.
+# Harusnya di-set di production oleh Nginx/reverse proxy.
+
+# 10020	0	X-Frame-Options header — INFO. Static site tidak punya
+# clickjacking risk yang signifikan, tapi tetap best practice.
+
+# 10023	0	Information Disclosure - Debug Errors — INFO. Static site
+# tidak mengeluarkan debug info.
+
+# ── Medium severity (untuk static site, tidak blokir pipeline) ──────
+
+# 10049	2	Cacheable HTTPS response — static site assets emang harus
+# di-cache untuk performa. Ini bukan security issue.
+
+# 10062	2	X-Forwarded-For Header — INFO/MEDIUM. Tidak relevan untuk
+# static site tanpa backend.
+
+# ── Notes untuk Security Headers ────────────────────────────────────
+# Security headers seperti CSP, HSTS, X-Frame-Options sebaiknya
+# dikonfigurasi di reverse proxy (Nginx, Cloudflare, dll) di production,
+# bukan di aplikasi static itu sendiri.
+#
+# Lihat nginx.conf untuk konfigurasi security headers yang sudah ada.

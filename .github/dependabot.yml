@@ -1,0 +1,52 @@
+# =============================================================================
+# Dependabot — Auto-Fix PR untuk Dependency Vulnerabilities
+# =============================================================================
+# Dependabot secara otomatis memonitor dependency dan membuat Pull Request
+# ketika ada versi baru (termasuk security fix) yang tersedia.
+#
+# NOTE: Ini masih DEVELOPMENT, schedule di-set ke daily agar cepat dapat
+# feedback. Saat production nanti, ganti ke weekly.
+#
+# Database: GitHub Advisory Database (GHSA) — curated CVE database
+#
+# CATATAN: Dependabot hanya mendukung interval: daily | weekly | monthly
+#    (tidak ada hourly). Paling cepat adalah daily.
+#
+# Referensi: https://docs.github.com/en/code-security/dependabot
+# =============================================================================
+
+version: 2
+updates:
+  # ── npm / Node.js dependencies ──────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "11:00"
+      timezone: "Asia/Jakarta"
+    # Batasi jumlah PR terbuka agar tidak overwhelm
+    open-pull-requests-limit: 5
+    # Label yang akan ditambahkan ke PR
+    labels:
+      - "dependencies"
+      - "security"
+    # Strategi versioning: naikkan minor/patch saja (hindari breaking changes)
+    versioning-strategy: increase
+    # Kelompokkan update devDependencies dalam 1 PR
+    groups:
+      dev-dependencies:
+        patterns:
+          - "*"
+        dependency-type: "development"
+
+  # ── GitHub Actions dependencies ────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "11:00"
+      timezone: "Asia/Jakarta"
+    open-pull-requests-limit: 3
+    labels:
+      - "github-actions"
+      - "security"

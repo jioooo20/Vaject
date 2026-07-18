@@ -1,7 +1,46 @@
-node_modules
+# ── Security: jangan pernah masukkan file sensitif ──────────────────
+**/.env
+**/.env.*
+**/secrets*
+**/credentials*
+**/*.pem
+**/*.key
+**/*.cert
+
+# ── Source control ──────────────────────────────────────────────────
 .git
 .gitignore
-*.md
+.gitattributes
+.gitkeep
+.gitmodules
+
+# ── Development ─────────────────────────────────────────────────────
+node_modules
 .vscode
 .idea
-.gitkeep
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Documentation (tidak perlu di production image) ─────────────────
+*.md
+README*
+LICENSE*
+
+# ── CI / Testing ────────────────────────────────────────────────────
+.tests/
+coverage/
+.tmp/
+
+# ── Logs ────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ── Security scan artifacts (tidak perlu di image) ──────────────────
+reports/
+.sarif/
+*.sarif
+zap/
+
