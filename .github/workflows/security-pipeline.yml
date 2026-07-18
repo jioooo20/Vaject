@@ -252,23 +252,18 @@ jobs:
           target: 'http://localhost:8080'
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a -I'
+          # artifact_name tidak dipakai — ZAP upload pake backend lama (v1)
+          # yang gak kompatibel dengan download-artifact@v8 (backend v2).
+          # Kita upload manual dari workspace sebagai gantinya.
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifact_name: zap-baseline-report
 
-      - name: Download ZAP JSON report
+      - name: Upload ZAP JSON report from workspace
         if: always()
         continue-on-error: true
-        uses: actions/download-artifact@v8
-        with:
-          name: zap-baseline-report
-          path: /tmp/zap-report
-
-      - name: Upload ZAP JSON as scan artifact
-        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: scan-results-dast
-          path: /tmp/zap-report/*.json
+          path: report_json.json
           retention-days: 30
           if-no-files-found: ignore
 
@@ -292,15 +287,6 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           pattern: scan-results-*
-          path: /tmp/scan-results/
-          merge-multiple: true
-
-      - name: Download ZAP results
-        if: always()
-        continue-on-error: true
-        uses: actions/download-artifact@v8
-        with:
-          pattern: zap-*
           path: /tmp/scan-results/
           merge-multiple: true
 
