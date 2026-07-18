@@ -7,7 +7,7 @@
 #
 # Keamanan:
 #   - Base image di-pin lewat SHA256 digest (tamper-proof)
-#   - USER nginx (non-root) — mengurangi blast radius
+#   - Nginx master process root (bind port 80), worker process nginx (drop privileges)
 #   - Hanya COPY file yang diperlukan dari build stage
 #   - HEALTHCHECK untuk monitoring container health
 # =============================================================================
@@ -36,15 +36,20 @@ RUN npm run build
 # NOTE: Update SHA secara berkala. Cek di https://hub.docker.com/_/nginx
 FROM nginx:alpine@sha256:7068961d45b07b2af510ac002e9daa63a1d3eba2111202d6768798690800fffd
 
-# Security: non-root user
-# Nginx alpine sudah memiliki user 'nginx' (UID 101)
-USER nginx
+# Tidak pakai USER nginx karena master process nginx perlu root untuk bind port 80
+# (port < 1024 adalah privileged port). Nginx secara otomatis drop privileges
+# ke user 'nginx' untuk worker process setelah bind port.
+# Lihat: https://hub.docker.com/_/nginx (notes on running as non-root)
 
 # Copy built assets dari build stage (hanya yang diperlukan)
-COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copy nginx configuration
-COPY --chown=nginx:nginx nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Fix ownership: pastikan file bisa dibaca worker process
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chown nginx:nginx /etc/nginx/conf.d/default.conf
 
 # Health check: pastikan nginx merespon
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
