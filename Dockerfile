@@ -59,7 +59,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 EXPOSE 80
 
 # Start nginx in foreground
-# nosemgrep: dockerfile.security.missing-user.missing-user
+# nosemgrep: dockerfile.security.missing-user
 # Nginx master process NEEDS root untuk bind port 80 (privileged port).
 # Worker process otomatis drop privilege ke user 'nginx'.
 # Lihat: https://hub.docker.com/_/nginx (notes on running as non-root)
