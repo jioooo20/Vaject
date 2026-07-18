@@ -62,5 +62,5 @@ EXPOSE 80
 # Nginx master process NEEDS root untuk bind port 80 (privileged port).
 # Worker process otomatis drop privilege ke user 'nginx'.
 # Lihat: https://hub.docker.com/_/nginx (notes on running as non-root)
-# nosemgrep: dockerfile.security.missing-user
+# nosemgrep: dockerfile.security.missing-user.missing-user
 CMD ["nginx", "-g", "daemon off;"]
