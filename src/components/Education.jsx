@@ -1,37 +1,28 @@
-import { motion } from 'framer-motion'
 import { GraduationCap, Calendar } from 'lucide-react'
 import { education } from '../data/portfolio'
-import { useScrollReveal } from '../hooks/useScrollReveal'
+import SectionHeader from './SectionHeader'
+import SectionWrapper from './SectionWrapper'
+import Card from './Card'
 
 export default function Education() {
-  const { ref, isInView, hidden, visible } = useScrollReveal('up', 0, 40)
-
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-      {/* Section Header */}
-      <motion.div
-        ref={ref}
-        initial={hidden}
-        animate={isInView ? visible : hidden}
-        className="text-center mb-16"
-      >
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-light/50 dark:bg-accent/10 text-accent text-sm font-medium mb-4">
-          <GraduationCap size={14} />
-          Education
-        </div>
-        <h2 className="text-3xl sm:text-4xl font-bold">Academic Background</h2>
-      </motion.div>
+    <SectionWrapper>
+      <SectionHeader
+        icon={GraduationCap}
+        label="Education"
+        title="Academic Background"
+        subtitle="My formal education and qualifications"
+      />
 
       {/* Education Cards */}
       <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         {education.map((edu, idx) => (
-          <motion.div
+          <Card
             key={edu.school}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: idx * 0.1 }}
-            className="p-6 rounded-2xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border hover:border-accent/30 transition-all duration-300"
           >
             <div className="flex items-start gap-4">
               {/* Icon */}
@@ -62,9 +53,9 @@ export default function Education() {
                 </p>
               </div>
             </div>
-          </motion.div>
+          </Card>
         ))}
       </div>
-    </div>
+    </SectionWrapper>
   )
 }

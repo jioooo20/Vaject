@@ -1,79 +1,54 @@
-import { motion } from 'framer-motion'
-import { FolderGit2, ExternalLink, Star } from 'lucide-react'
-import { projects } from '../data/portfolio'
-import { useScrollReveal } from '../hooks/useScrollReveal'
-
-const techColors = {
-  Laravel: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  MySQL: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  Blade: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-  Bootstrap: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  Tailwind: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
-  PHP: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
-  React: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400',
-  Express: 'bg-gray-100 text-gray-700 dark:bg-gray-700/30 dark:text-gray-300',
-  JavaScript: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  Vue: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-  'Node.js': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  TypeScript: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  Dart: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
-  Flutter: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-}
+import { FolderGit2, ExternalLink } from 'lucide-react'
+import { projects, techColors } from '../data/portfolio'
+import SectionHeader from './SectionHeader'
+import SectionWrapper from './SectionWrapper'
+import Card from './Card'
 
 export default function Projects() {
-  const { ref, isInView, hidden, visible } = useScrollReveal('up', 0, 40)
-
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-      {/* Section Header */}
-      <motion.div
-        ref={ref}
-        initial={hidden}
-        animate={isInView ? visible : hidden}
-        className="text-center mb-16"
-      >
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-light/50 dark:bg-accent/10 text-accent text-sm font-medium mb-4">
-          <FolderGit2 size={14} />
-          Projects
-        </div>
-        <h2 className="text-3xl sm:text-4xl font-bold">Featured Work</h2>
-        <p className="text-light-muted dark:text-dark-muted mt-3 max-w-md mx-auto">
-          Some projects I've built and contributed to
-        </p>
-      </motion.div>
+    <SectionWrapper>
+      <SectionHeader
+        icon={FolderGit2}
+        label="Projects"
+        title="Featured Work"
+        subtitle="Some projects I've built and contributed to"
+      />
 
       {/* Projects Grid */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map((project, idx) => (
-          <motion.a
+          <Card
             key={project.title}
+            as="a"
             href={project.github}
             target="_blank"
             rel="noopener noreferrer"
+            className="group"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: idx * 0.08 }}
             whileHover={{ y: -6 }}
-            className="group block p-6 rounded-2xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border hover:border-accent/40 hover:shadow-lg hover:shadow-accent/5 transition-all duration-300"
           >
-            {/* Image Placeholder */}
+            {/* Image */}
             <div className="w-full h-36 rounded-xl mb-4 bg-gradient-to-br from-accent/5 to-accent/10 dark:from-accent/10 dark:to-accent/5 flex items-center justify-center overflow-hidden">
               {project.image ? (
                 <img
                   src={project.image}
                   alt={project.title}
+                  loading="lazy"
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <FolderGit2
-                  size={40}
-                  className="text-accent/30 dark:text-accent/20"
-                />
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-accent/10 to-accent/5">
+                  <span className="text-accent/40 font-bold text-lg text-center px-2">
+                    {project.title}
+                  </span>
+                </div>
               )}
             </div>
 
-            {/* Title + Stars */}
+            {/* Title */}
             <div className="flex items-start justify-between gap-2 mb-2">
               <h3 className="font-semibold text-light-text dark:text-dark-text group-hover:text-accent transition-colors">
                 {project.title}
@@ -101,9 +76,9 @@ export default function Projects() {
                 </span>
               ))}
             </div>
-          </motion.a>
+          </Card>
         ))}
       </div>
-    </div>
+    </SectionWrapper>
   )
 }

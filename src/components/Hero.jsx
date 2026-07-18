@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { ArrowDown, Download, ExternalLink } from 'lucide-react'
 import { personalData } from '../data/portfolio'
+import Button from './Button'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -85,7 +86,7 @@ export default function Hero() {
               variants={itemVariants}
               className="text-light-muted dark:text-dark-muted text-sm sm:text-base leading-relaxed max-w-xl mx-auto lg:mx-0 mb-8"
             >
-              Building scalable backends, crafting clean APIs, and learning to secure them all.
+              {personalData.taglineExtended}
             </motion.p>
 
             {/* CTA Buttons */}
@@ -93,30 +94,17 @@ export default function Hero() {
               variants={itemVariants}
               className="flex flex-wrap gap-4 justify-center lg:justify-start"
             >
-              <button
-                onClick={handleScroll}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-white font-medium hover:bg-accent-hover transition-all duration-200 shadow-lg shadow-accent/25 hover:shadow-accent/40"
-              >
+              <Button onClick={handleScroll} icon={ExternalLink}>
                 View Projects
-                <ExternalLink size={16} />
-              </button>
+              </Button>
 
-              <a
-                href={`mailto:${personalData.email}`}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-light-border dark:border-dark-border text-light-text dark:text-dark-text font-medium hover:bg-light-border/50 dark:hover:bg-dark-border/50 transition-all duration-200"
-              >
+              <Button variant="outline" href={`mailto:${personalData.email}`}>
                 Contact Me
-              </a>
+              </Button>
 
-              <a
-                href={personalData.resumeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border text-light-muted dark:text-dark-muted font-medium hover:text-light-text dark:hover:text-dark-text hover:border-accent/50 transition-all duration-200"
-              >
-                <Download size={16} />
+              <Button variant="ghost" href={personalData.resumeUrl} target="_blank" rel="noopener noreferrer" icon={Download}>
                 Resume
-              </a>
+              </Button>
             </motion.div>
           </div>
 
@@ -152,7 +140,7 @@ export default function Hero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2, duration: 0.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-light-muted dark:text-dark-muted hover:text-accent transition-colors duration-200"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-light-muted dark:text-dark-muted hover:text-accent transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}

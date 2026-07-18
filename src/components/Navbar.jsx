@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Moon, Sun } from 'lucide-react'
-import { navLinks } from '../data/portfolio'
+import { navLinks, personalData } from '../data/portfolio'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -68,9 +68,14 @@ export default function Navbar() {
           {/* Logo */}
           <button
             onClick={() => handleNavClick('#home')}
-            className="text-xl font-bold bg-gradient-to-r from-accent to-accent-hover bg-clip-text text-transparent"
+            className="flex items-baseline gap-2"
           >
-            Alkio
+            <span className="text-xl font-bold bg-gradient-to-r from-accent to-accent-hover bg-clip-text text-transparent">
+              Alkio
+            </span>
+            <span className="hidden sm:inline text-xs text-light-muted dark:text-dark-muted">
+              — {personalData.name}
+            </span>
           </button>
 
           {/* Desktop Nav */}
@@ -79,7 +84,8 @@ export default function Navbar() {
               <button
                 key={link.name}
                 onClick={() => handleNavClick(link.href)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                aria-current={activeSection === link.href.slice(1) ? 'page' : undefined}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                   activeSection === link.href.slice(1)
                     ? 'text-accent bg-accent-light/50 dark:bg-accent/10'
                     : 'text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text hover:bg-light-border/50 dark:hover:bg-dark-border/50'
@@ -92,13 +98,11 @@ export default function Navbar() {
             {/* Theme Toggle */}
             <button
               onClick={() => setDark(!dark)}
-              className="ml-2 p-2 rounded-lg text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text hover:bg-light-border/50 dark:hover:bg-dark-border/50 transition-all duration-200"
+              className="ml-2 p-2 rounded-lg text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text hover:bg-light-border/50 dark:hover:bg-dark-border/50 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               aria-label="Toggle theme"
             >
               <motion.div
-                key={dark ? 'dark' : 'light'}
-                initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
-                animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                animate={{ rotate: dark ? 0 : -90 }}
                 transition={{ duration: 0.3, ease: 'easeOut' }}
               >
                 {dark ? <Sun size={18} /> : <Moon size={18} />}
@@ -110,15 +114,17 @@ export default function Navbar() {
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={() => setDark(!dark)}
-              className="p-2 rounded-lg text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text"
+              className="p-2 rounded-lg text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               aria-label="Toggle theme"
             >
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-2 rounded-lg text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text"
-              aria-label="Toggle menu"
+              className="p-2 rounded-lg text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-menu"
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -130,6 +136,7 @@ export default function Navbar() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
+            id="mobile-menu"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -141,7 +148,8 @@ export default function Navbar() {
                 <button
                   key={link.name}
                   onClick={() => handleNavClick(link.href)}
-                  className={`block w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  aria-current={activeSection === link.href.slice(1) ? 'page' : undefined}
+                  className={`block w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                     activeSection === link.href.slice(1)
                       ? 'text-accent bg-accent-light/50 dark:bg-accent/10'
                       : 'text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text'

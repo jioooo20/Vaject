@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
 import { User, Code, Coffee, Layers } from 'lucide-react'
 import { personalData } from '../data/portfolio'
-import { useScrollReveal } from '../hooks/useScrollReveal'
+import SectionHeader from './SectionHeader'
+import SectionWrapper from './SectionWrapper'
 
 const stats = [
   { icon: Code, label: 'Projects', value: '6+' },
@@ -10,23 +11,14 @@ const stats = [
 ]
 
 export default function About() {
-  const { ref, isInView, hidden, visible } = useScrollReveal('up', 0, 40)
-
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-      {/* Section Header */}
-      <motion.div
-        ref={ref}
-        initial={hidden}
-        animate={isInView ? visible : hidden}
-        className="text-center mb-16"
-      >
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-light/50 dark:bg-accent/10 text-accent text-sm font-medium mb-4">
-          <User size={14} />
-          About Me
-        </div>
-        <h2 className="text-3xl sm:text-4xl font-bold">Get to Know Me</h2>
-      </motion.div>
+    <SectionWrapper>
+      <SectionHeader
+        icon={User}
+        label="About Me"
+        title="Get to Know Me"
+        subtitle="A bit about my journey as a developer"
+      />
 
       {/* Content Grid */}
       <div className="grid lg:grid-cols-5 gap-12 lg:gap-16 items-center">
@@ -73,7 +65,7 @@ export default function About() {
           ))}
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 pt-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-6">
             {stats.map((stat) => (
               <div
                 key={stat.label}
@@ -94,6 +86,6 @@ export default function About() {
           </div>
         </motion.div>
       </div>
-    </div>
+    </SectionWrapper>
   )
 }

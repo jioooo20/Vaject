@@ -1,15 +1,26 @@
-import { useMotionValue, useSpring, useInView } from 'framer-motion'
+import { useInView, useReducedMotion } from 'framer-motion'
 import { useRef } from 'react'
 
 export function useScrollReveal(direction = 'up', delay = 0, distance = 60) {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-80px' })
+  const prefersReducedMotion = useReducedMotion()
 
   const directionMap = {
     up: { y: distance },
     down: { y: -distance },
     left: { x: distance },
     right: { x: -distance },
+  }
+
+  // When user prefers reduced motion, skip all animations
+  if (prefersReducedMotion) {
+    return {
+      ref,
+      isInView: true,
+      hidden: { opacity: 1, x: 0, y: 0 },
+      visible: { opacity: 1, x: 0, y: 0 },
+    }
   }
 
   const hidden = { opacity: 0, ...directionMap[direction] }

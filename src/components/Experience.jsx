@@ -1,26 +1,19 @@
 import { motion } from 'framer-motion'
 import { Briefcase, Calendar, MapPin } from 'lucide-react'
 import { experiences } from '../data/portfolio'
-import { useScrollReveal } from '../hooks/useScrollReveal'
+import SectionHeader from './SectionHeader'
+import SectionWrapper from './SectionWrapper'
+import Card from './Card'
 
 export default function Experience() {
-  const { ref, isInView, hidden, visible } = useScrollReveal('up', 0, 40)
-
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-      {/* Section Header */}
-      <motion.div
-        ref={ref}
-        initial={hidden}
-        animate={isInView ? visible : hidden}
-        className="text-center mb-16"
-      >
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-light/50 dark:bg-accent/10 text-accent text-sm font-medium mb-4">
-          <Briefcase size={14} />
-          Experience
-        </div>
-        <h2 className="text-3xl sm:text-4xl font-bold">Where I've Worked</h2>
-      </motion.div>
+    <SectionWrapper>
+      <SectionHeader
+        icon={Briefcase}
+        label="Experience"
+        title="Where I've Worked"
+        subtitle="My professional experience in software and IT"
+      />
 
       {/* Timeline */}
       <div className="relative max-w-3xl mx-auto">
@@ -51,7 +44,7 @@ export default function Experience() {
               />
 
               {/* Card */}
-              <div className="p-6 rounded-2xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border hover:border-accent/30 transition-all duration-300">
+              <Card hover={false}>
                 <div className="flex items-center gap-2 text-accent text-xs font-medium mb-2">
                   <Calendar size={12} />
                   {exp.period}
@@ -80,11 +73,11 @@ export default function Experience() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </Card>
             </motion.div>
           )
         })}
       </div>
-    </div>
+    </SectionWrapper>
   )
 }
