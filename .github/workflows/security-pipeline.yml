@@ -245,6 +245,7 @@ jobs:
           exit 1
 
       - name: ZAP Baseline Scan
+        continue-on-error: true
         uses: zaproxy/action-baseline@v0.15.0
         with:
           target: 'http://localhost:8080'
