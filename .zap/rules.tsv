@@ -1,58 +1,59 @@
 # =============================================================================
 # ZAP Rules File — Alert Filtering & False Positive Management
 # =============================================================================
-# Format: TSV (Tab Separated Values)
-# Kolom: Alert ID \t New Severity \t Notes
+# Format: pluginId \t action \t description
 #
-# Alert ID:  ID dari ZAP alert (angka)
-# New Severity: 0 = INFO, 1 = LOW, 2 = MEDIUM, 3 = HIGH (IGNORE = -1)
-# Notes:        Alasan kenapa alert di-ignore atau di-lower severity
+# action values: PASS, IGNORE, INFO, WARN, FAIL
+#   IGNORE  — Sembunyikan alert dari report
+#   INFO    — Tampilkan sebagai informational
+#   WARN    — Tampilkan sebagai warning (default)
+#   FAIL    — Tampilkan sebagai failure (akan mempengaruhi exit code)
+#   PASS    — Tidak ada alert yang ditemukan untuk rule ini
 #
 # Cara mendapatkan Alert ID:
-#   1. Jalankan ZAP scan
-#   2. Buka report HTML atau JSON
-#   3. Cari "alertId" atau "pluginId" di setiap alert
+#   1. Jalankan ZAP scan dan lihat output
+#   2. Cari angka dalam kurung siku, misal [10038]
+#   3. Masukkan ke file ini dengan action yang sesuai
 #
-# Referensi: https://www.zaproxy.org/docs/desktop/ui/dialogs/options/alertfilters/
+# Referensi:
+#   - https://www.zaproxy.org/docs/docker/baseline-scan/
+#   - https://www.zaproxy.org/docs/desktop/ui/dialogs/options/alertfilters/
 # =============================================================================
 
-# ── False Positives untuk Static Site (Vaject) ──────────────────────
+# ── False Positives untuk Static Site (Vaject) ─────────────────────────────
+# Security headers dan konfigurasi server akan diatur di reverse proxy
+# (Nginx, Cloudflare, dll) saat production, bukan di aplikasi static.
 
-# 10038	-1	Content-Type header diatur oleh Nginx, bukan aplikasi
-# 10038 adalah "Content-Type Header Missing" — Nginx secara default
-# sudah mengatur Content-Type berdasarkan ekstensi file.
+10038	IGNORE	Content-Type Header Missing — Nginx sudah mengatur Content-Type berdasarkan ekstensi file
+10095	IGNORE	Backup File Detection — static site tidak punya backup file yang bisa diakses via web
+10107	IGNORE	HTTP To HTTPS — tidak relevan untuk localhost testing; HTTPS di reverse proxy
+10202	IGNORE	Absolute URL Exposure — static site memang punya absolute URL di HTML assets
+10036	IGNORE	Server Leaks Version Information via Response Header — Nginx version, bukan aplikasi
+10017	IGNORE	Cross-Domain JavaScript Source — static site legitimately loads external libs (CDN)
+90011	IGNORE	Charset Mismatch — charset sudah diatur di HTML <meta> tag
 
-# 10095	-1	Backup file detection — static site tidak punya backup file
-# yang bisa diakses via web.
+# ── Informational — dicatat tapi tidak perlu difailkan ─────────────────────
+# Security headers sebaiknya dikonfigurasi di reverse proxy di production.
+# Untuk localhost testing, ini bukan security issue.
 
-# 10107	-1	HTTP To HTTPS — tidak relevan untuk localhost testing.
-# Di production, reverse proxy yang handle HTTPS.
+10021	INFO	X-Content-Type-Options Header Missing — akan di-set di reverse proxy (Nginx) saat production
+10020	INFO	X-Frame-Options Header — static site tidak punya clickjacking risk signifikan
+10023	INFO	Information Disclosure - Debug Errors — static site tidak mengeluarkan debug info
 
-# 10202	-1	Absolute URL exposure — static site memang punya absolute URL
-# di HTML, ini bukan vulnerability.
+# ── WARN — dicatat dalam report, tidak mempengaruhi exit code dengan -I ────
+# Alerts ini tetap legitimate untuk diperiksa, tapi tidak perlu blokir pipeline.
 
-# ── Informational (dicatat tapi tidak perlu difailkan) ──────────────
+10049	WARN	Cacheable HTTPS Response — static site assets memang harus di-cache untuk performa
+10062	WARN	X-Forwarded-For Header — tidak relevan untuk static site tanpa backend
 
-# 10021	0	X-Content-Type-Options header — INFO saja untuk localhost.
-# Harusnya di-set di production oleh Nginx/reverse proxy.
-
-# 10020	0	X-Frame-Options header — INFO. Static site tidak punya
-# clickjacking risk yang signifikan, tapi tetap best practice.
-
-# 10023	0	Information Disclosure - Debug Errors — INFO. Static site
-# tidak mengeluarkan debug info.
-
-# ── Medium severity (untuk static site, tidak blokir pipeline) ──────
-
-# 10049	2	Cacheable HTTPS response — static site assets emang harus
-# di-cache untuk performa. Ini bukan security issue.
-
-# 10062	2	X-Forwarded-For Header — INFO/MEDIUM. Tidak relevan untuk
-# static site tanpa backend.
-
-# ── Notes untuk Security Headers ────────────────────────────────────
+# ── Catatan ────────────────────────────────────────────────────────────────
 # Security headers seperti CSP, HSTS, X-Frame-Options sebaiknya
 # dikonfigurasi di reverse proxy (Nginx, Cloudflare, dll) di production,
 # bukan di aplikasi static itu sendiri.
 #
-# Lihat nginx.conf untuk konfigurasi security headers yang sudah ada.
+# Jalankan ZAP scan sekali untuk melihat alert IDs yang ditemukan,
+# lalu tambahkan rule yang sesuai di file ini.
+#
+# Gunakan action IGNORE untuk false positive yang sudah diverifikasi.
+# Gunakan action INFO/WARN untuk temuan yang perlu diverifikasi manual.
+# Gunakan action FAIL hanya untuk temuan yang benar-benar kritis.
