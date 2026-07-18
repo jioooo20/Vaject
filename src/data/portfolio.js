@@ -1,14 +1,14 @@
 export const personalData = {
   name: 'Giovano Alkandri',
   role: 'Fullstack Engineer',
-  tagline: 'Backend-focused developer with a growing passion for DevSecOps',
+  tagline: 'Backend-focused developer with a growing passion for DevOps',
   email: 'giovanoalkandri@gmail.com',
   linkedin: 'https://www.linkedin.com/in/giovano-alkandri-a4009b252/',
   github: 'https://github.com/jioooo20',
   resumeUrl: '/cv/cv-giovano-alkandri.pdf',
   bio: [
     'A passionate fullstack engineer with a strong foundation in backend development using Laravel, Express, and NestJS. Experienced in building scalable web applications and RESTful APIs with various database systems.',
-    'Currently expanding expertise into DevSecOps — integrating security practices into the development lifecycle. Proficient in Linux server administration (Debian/Ubuntu), basic networking, and containerization.',
+    'Currently expanding expertise into DevOps — integrating security practices into the development lifecycle. Proficient in Linux server administration (Debian/Ubuntu), basic networking, and containerization.',
     'Always eager to learn new technologies and solve real-world problems through clean, maintainable code.',
   ],
 }

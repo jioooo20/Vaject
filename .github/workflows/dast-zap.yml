@@ -77,10 +77,10 @@ jobs:
           # -a: include alpha passive scan rules
           # -I: jangan fail pada WARNING, hanya FAIL/ERROR
           cmd_options: '-a -I'
-          # Token untuk issue management (opsional)
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # Nama artifact
-          artifact_name: zap-baseline-report
+          # Nama artifact — dikosongkan karena upload pake backend lama (v1)
+          # yang gak kompatibel dengan download-artifact@v8.
+          # Token dihapus — ZAP ga perlu bikin GitHub Issue.
+          artifact_name: ''
 
       - name: Stop application container
         if: always()

@@ -72,8 +72,9 @@ jobs:
           rules_file_name: '.zap/rules.tsv'
           # -a: include alpha active scan rules
           cmd_options: '-a'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          artifact_name: zap-full-scan-report
+          # Token dihapus — ZAP ga perlu bikin GitHub Issue.
+          # artifact_name dikosongkan — upload pake backend lama gak kompatibel.
+          artifact_name: ''
 
       - name: Stop application container
         if: always()

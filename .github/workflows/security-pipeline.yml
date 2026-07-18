@@ -255,7 +255,7 @@ jobs:
           # artifact_name tidak dipakai — ZAP upload pake backend lama (v1)
           # yang gak kompatibel dengan download-artifact@v8 (backend v2).
           # Kita upload manual dari workspace sebagai gantinya.
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # token juga dihapus — ZAP ga perlu bikin GitHub Issue, report dari pipeline cukup.
 
       - name: Upload ZAP JSON report from workspace
         if: always()
