@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: Download findings.json artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: findings-json
           path: /tmp/report
@@ -96,7 +96,7 @@ print(f'comment={comment}')
 
       - name: Find PR number
         id: find-pr
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const run = await github.rest.actions.getWorkflowRun({
@@ -113,7 +113,7 @@ print(f'comment={comment}')
 
       - name: Post or update PR comment
         if: steps.find-pr.outputs.pr_number != ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const prNumber = parseInt('${{ steps.find-pr.outputs.pr_number }}');
