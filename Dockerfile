@@ -7,7 +7,6 @@
 #
 # Keamanan:
 #   - Base image di-pin lewat SHA256 digest (tamper-proof)
-#   - USER nginx (non-root) — mengurangi blast radius
 #   - Hanya COPY file yang diperlukan dari build stage
 #   - HEALTHCHECK untuk monitoring container health
 # =============================================================================
@@ -35,10 +34,6 @@ RUN npm run build
 # Gunakan nginx:alpine yang sudah di-pin digest
 # NOTE: Update SHA secara berkala. Cek di https://hub.docker.com/_/nginx
 FROM nginx:alpine@sha256:7068961d45b07b2af510ac002e9daa63a1d3eba2111202d6768798690800fffd
-
-# Security: non-root user
-# Nginx alpine sudah memiliki user 'nginx' (UID 101)
-USER nginx
 
 # Copy built assets dari build stage (hanya yang diperlukan)
 COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html
