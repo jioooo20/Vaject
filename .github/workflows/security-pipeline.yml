@@ -47,7 +47,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -297,12 +297,12 @@ jobs:
 
       - name: Download ZAP results
         if: always()
+        continue-on-error: true
         uses: actions/download-artifact@v8
         with:
           pattern: zap-*
           path: /tmp/scan-results/
           merge-multiple: true
-          continue-on-error: true
 
       - name: List downloaded scan results
         run: |
