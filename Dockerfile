@@ -14,8 +14,8 @@
 
 # ===== Stage 1: Build aplikasi React =====
 # NOTE: Pin digest untuk reproducibility. Update secara berkala.
-# node:20-alpine SHA (Juni 2026) — verify di https://hub.docker.com/_/node
-FROM node:20-alpine@sha256:8eaf21f3154a5752b710b561c5c05dc99c3f57ffd6780e3c1e4c6c0c1e8f1a2f AS build
+# node:24-alpine SHA (Juli 2026) — verify di https://hub.docker.com/_/node
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS build
 
 WORKDIR /app
 
@@ -34,7 +34,7 @@ RUN npm run build
 # ===== Stage 2: Serve dengan Nginx (minimal) =====
 # Gunakan nginx:alpine yang sudah di-pin digest
 # NOTE: Update SHA secara berkala. Cek di https://hub.docker.com/_/nginx
-FROM nginx:alpine@sha256:8c7f6b9a8f5c8b6b5e8f4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f
+FROM nginx:alpine@sha256:7068961d45b07b2af510ac002e9daa63a1d3eba2111202d6768798690800fffd
 
 # Security: non-root user
 # Nginx alpine sudah memiliki user 'nginx' (UID 101)
