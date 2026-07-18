@@ -255,6 +255,7 @@ jobs:
 
       - name: Download ZAP JSON report
         if: always()
+        continue-on-error: true
         uses: actions/download-artifact@v8
         with:
           name: zap-baseline-report
@@ -271,6 +272,7 @@ jobs:
 
       - name: Stop application container
         if: always()
+        continue-on-error: true
         run: docker stop vaject-app && docker rm vaject-app
 
   # ── 6. REPORT GENERATOR — Unified Security Report ─────────────────
