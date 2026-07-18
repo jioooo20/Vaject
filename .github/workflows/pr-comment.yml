@@ -46,53 +46,10 @@ jobs:
       - name: Generate PR comment
         id: generate-comment
         run: |
-          if [ -f /tmp/report/findings.json ]; then
-            python3 -c "
-import json
-
-with open('/tmp/report/findings.json') as f:
-    data = json.load(f)
-
-summary = data.get('summary', {})
-total = data.get('total_findings', 0)
-findings = data.get('findings', [])
-
-# Build comment
-comment = '''## Security Scan Report
-
-| Severity | Count |
-|----------|-------|
-'''
-
-for sev in ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']:
-    cnt = summary.get(sev, 0)
-    comment += f\"'''| {sev} | {cnt} |\n\"''' 
-
-comment += f\"'''\n**Total:** {total} findings\n\"'''
-
-# Top 5 most fatal
-fatal = [f for f in findings if f['severity'] in ('CRITICAL', 'HIGH')][:5]
-if fatal:
-    comment += '''\n### Top Findings (Most Fatal)\n\n'''
-    for i, f in enumerate(fatal, 1):
-        loc = f.get('location', {})
-        loc_str = loc.get('file', '') or loc.get('url', '') or loc.get('package', '') or ''
-        line = loc.get('line', '')
-        if line:
-            loc_str += f':{line}'
-        comment += f\"'''{i}. **[{f['severity']}]** {f['tool_name']} — {f['title'][:100]}\n   _{loc_str}_\n\n\"'''
-
-comment += '''---
-[Download HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts)
-'''
-
-# Escape for GitHub Actions
-comment = comment.replace('%', '%25').replace('\\n', '%0A').replace('\\r', '%0D')
-print(f'comment={comment}')
-" > /tmp/comment.txt
-          else
-            echo "comment=Tidak ada hasil scan yang tersedia." > /tmp/comment.txt
-          fi
+          python3 .github/scripts/generate-pr-comment.py \
+            --run-id ${{ github.event.workflow_run.id }} \
+            --repo ${{ github.repository }} \
+            > /tmp/comment.txt
 
       - name: Find PR number
         id: find-pr

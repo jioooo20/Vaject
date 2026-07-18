@@ -83,15 +83,7 @@ jobs:
           echo "Critical vulnerabilities: $CRITICAL"
           if [ "$HIGH" -gt "0" ] || [ "$CRITICAL" -gt "0" ]; then
             echo "npm audit menemukan $HIGH high dan $CRITICAL critical vulnerability!"
-            cat npm-audit-results.json | python3 -c "
-import sys, json
-d = json.load(sys.stdin)
-vulns = d.get('vulnerabilities', {})
-for pkg, info in vulns.items():
-    sev = info.get('severity', '')
-    if sev in ('high', 'critical'):
-        print(f'  [{sev.upper()}] {pkg}: {info.get(\"title\", \"\")} - {info.get(\"range\", \"\")}')
-" 2>/dev/null || true
+            cat npm-audit-results.json | python3 -c "import sys,json; d=json.load(sys.stdin); [print(f'  [{info.get(\"severity\",\"\").upper()}] {pkg}: {info.get(\"title\",\"\")} - {info.get(\"range\",\"\")}') for pkg,info in d.get('vulnerabilities',{}).items() if info.get('severity','') in ('high','critical')]" 2>/dev/null || true
             exit 1
           fi
           echo "npm audit: tidak ada high/critical vulnerabilities"

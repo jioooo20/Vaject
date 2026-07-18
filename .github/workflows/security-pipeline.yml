@@ -142,17 +142,7 @@ jobs:
         run: |
           npm audit --audit-level=high --json 2> /tmp/npm-audit-results.json || true
           # Cek dan fail jika ada high/critical
-          python3 -c "
-import json
-with open('/tmp/npm-audit-results.json') as f:
-    d = json.load(f)
-v = d.get('metadata', {}).get('vulnerabilities', {})
-high = v.get('high', 0)
-crit = v.get('critical', 0)
-print(f'npm audit: {high} high, {crit} critical')
-if high > 0 or crit > 0:
-    exit(1)
-" || exit 1
+          python3 -c "import json; d=json.load(open('/tmp/npm-audit-results.json')); v=d.get('metadata',{}).get('vulnerabilities',{}); high=v.get('high',0); crit=v.get('critical',0); print(f'npm audit: {high} high, {crit} critical'); exit(1) if high>0 or crit>0 else None" || exit 1
 
       - name: Upload SCA artifacts
         if: always()
