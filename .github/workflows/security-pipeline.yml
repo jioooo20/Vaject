@@ -140,7 +140,7 @@ jobs:
       - name: Run npm audit
         continue-on-error: true
         run: |
-          npm audit --audit-level=high --json 2> /tmp/npm-audit-results.json || true
+          npm audit --audit-level=high --json > /tmp/npm-audit-results.json || true
           # Cek dan fail jika ada high/critical
           python3 -c "import json; d=json.load(open('/tmp/npm-audit-results.json')); v=d.get('metadata',{}).get('vulnerabilities',{}); high=v.get('high',0); crit=v.get('critical',0); print(f'npm audit: {high} high, {crit} critical'); exit(1) if high>0 or crit>0 else None" || exit 1
 
@@ -182,8 +182,6 @@ jobs:
           push: false
           load: true
           tags: vaject:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Run Trivy image scan
         uses: aquasecurity/trivy-action@v0.35.0
@@ -227,8 +225,6 @@ jobs:
           push: false
           load: true
           tags: vaject-dast:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Start application container
         run: |

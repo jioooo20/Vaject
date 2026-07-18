@@ -75,7 +75,7 @@ jobs:
         # --audit-level=high: hanya gagal jika ada HIGH atau CRITICAL
         # --json: output JSON untuk processing lebih lanjut
         run: |
-          npm audit --audit-level=high --json 2> npm-audit-results.json || true
+          npm audit --audit-level=high --json > npm-audit-results.json || true
           # Parse JSON untuk menentukan apakah ada high/critical
           HIGH=$(cat npm-audit-results.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('metadata',{}).get('vulnerabilities',{}).get('high',0))" 2>/dev/null || echo "0")
           CRITICAL=$(cat npm-audit-results.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('metadata',{}).get('vulnerabilities',{}).get('critical',0))" 2>/dev/null || echo "0")
