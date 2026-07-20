@@ -60,21 +60,6 @@ export const experiences = [
   },
 ]
 
-export const education = [
-  {
-    school: 'Politeknik Negeri Malang',
-    degree: 'D4 Teknik Informatika',
-    period: '2023 - Present',
-    description: 'Focusing on software engineering, web development, and information systems.',
-  },
-  {
-    school: 'SMK Telkom Malang',
-    degree: 'Teknik Komputer dan Jaringan',
-    period: '2020 - 2023',
-    description: 'Vocational high school specializing in computer and network engineering (TKJ).',
-  },
-]
-
 export const projects = [
   {
     title: 'Simpelfas',
@@ -160,6 +145,5 @@ export const navLinks = [
   { name: 'Skills', href: '#skills' },
   { name: 'Experience', href: '#experience' },
   { name: 'Projects', href: '#projects' },
-  { name: 'Education', href: '#education' },
   { name: 'Contact', href: '#contact' },
 ]
