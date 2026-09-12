@@ -1,153 +1,158 @@
-import { motion } from 'framer-motion'
-import { ArrowDown, Download, ExternalLink } from 'lucide-react'
+import { useRef } from 'react'
+import { motion, useScroll, useTransform, useSpring, useReducedMotion } from 'motion/react'
+import { ArrowRight, Mail } from 'lucide-react'
 import { personalData } from '../data/portfolio'
 import Button from './Button'
+import { useMotionPrefs } from '../hooks/useMotionPrefs'
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.2,
-    },
-  },
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: [0.25, 0.1, 0.25, 1],
-    },
-  },
-}
+const EASE_SETTLE = [0.16, 1, 0.3, 1]
 
 export default function Hero() {
-  const handleScroll = () => {
-    const el = document.getElementById('projects')
-    if (el) el.scrollIntoView({ behavior: 'smooth' })
+  const sectionRef = useRef(null)
+  const reduced = useReducedMotion()
+  const { canHover } = useMotionPrefs()
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end start'],
+  })
+  const headlineY = useTransform(scrollYProgress, [0, 1], [0, -40])
+  const portraitY = useTransform(scrollYProgress, [0, 1], [0, -80])
+  const fade = useTransform(scrollYProgress, [0, 1], [1, 0])
+
+  // Portrait tilt (fine pointer only)
+  const tiltX = useSpring(0, { stiffness: 120, damping: 18 })
+  const tiltY = useSpring(0, { stiffness: 120, damping: 18 })
+
+  const handlePointer = (e) => {
+    if (reduced || !canHover) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const px = (e.clientX - rect.left) / rect.width - 0.5
+    const py = (e.clientY - rect.top) / rect.height - 0.5
+    tiltY.set(px * 6)
+    tiltX.set(-py * 6)
+  }
+
+  const resetTilt = () => {
+    tiltX.set(0)
+    tiltY.set(0)
+  }
+
+  const scrollTo = (id) => {
+    const el = document.getElementById(id)
+    if (!el) return
+    if (window.__lenis) window.__lenis.scrollTo(el)
+    else el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
+  }
+
+  const container = {
+    hidden: { opacity: 1 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.09, delayChildren: 0.2 } },
+  }
+  const item = {
+    hidden: reduced ? { opacity: 1 } : { opacity: 0, y: 24 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE_SETTLE } },
   }
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-accent/5 dark:bg-accent/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-accent/5 dark:bg-accent/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/3 dark:bg-accent/5 rounded-full blur-3xl" />
+    <section
+      ref={sectionRef}
+      className="relative min-h-screen flex items-center overflow-hidden bg-paper dark:bg-paper-dark border-b-[3px] border-ink dark:border-ink-dark"
+    >
+      {/* Hard-edged accent blocks */}
+      <div className="absolute inset-0 -z-10" aria-hidden="true">
+        <div className="absolute top-24 -left-16 w-64 h-64 bg-secondary border-[3px] border-ink dark:border-ink-dark" />
+        <div className="absolute bottom-24 -right-20 w-80 h-80 bg-accent border-[3px] border-ink dark:border-ink-dark" />
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20"
-        >
-          {/* Text Content */}
-          <div className="flex-1 text-center lg:text-left">
-            <motion.p
-              variants={itemVariants}
-              className="text-accent font-medium text-sm sm:text-base tracking-wider uppercase mb-4"
-            >
-              Hello, I'm
+      <div className="max-w-6xl mx-auto w-full pt-28 pb-20" style={{ paddingInline: 'var(--gutter)' }}>
+        <motion.div variants={container} initial="hidden" animate="visible" className="grid lg:grid-cols-12 gap-10 items-center">
+          {/* Headline — poster block, cols 1–8 */}
+          <motion.div style={reduced ? undefined : { y: headlineY, opacity: fade }} className="lg:col-span-8 lg:pr-10">
+            <motion.p variants={item} className="inline-block font-mono font-bold text-[var(--text-mono)] uppercase tracking-[0.2em] bg-secondary text-black border-[3px] border-ink dark:border-ink-dark px-3 py-1 mb-6">
+              01 — Portfolio
             </motion.p>
 
             <motion.h1
-              variants={itemVariants}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-6"
+              variants={item}
+              className="font-display font-black uppercase text-ink dark:text-ink-dark"
+              style={{ fontSize: 'var(--text-display)', lineHeight: 'var(--text-display--line-height)', letterSpacing: 'var(--text-display--letter-spacing)' }}
             >
-              <span className="bg-gradient-to-r from-accent via-accent-hover to-accent bg-clip-text text-transparent">
-                {personalData.name}
-              </span>
+              FULLSTACK
+              <br />
+              ENGINEER ⁄
             </motion.h1>
 
+            {/* Heavy accent rule */}
             <motion.div
-              variants={itemVariants}
-              className="mb-6"
-            >
-              <span className="inline-block px-4 py-2 rounded-full bg-accent-light/50 dark:bg-accent/10 text-accent font-medium text-sm sm:text-base">
-                {personalData.role}
-              </span>
+              variants={item}
+              aria-hidden="true"
+              className="h-2 w-56 bg-accent border-[3px] border-ink dark:border-ink-dark my-6"
+            />
+
+            <motion.p variants={item} className="font-display font-bold uppercase text-[length:var(--text-h2)] text-ink dark:text-ink-dark mb-6">
+              {personalData.name}
+            </motion.p>
+
+            <motion.div variants={item} className="flex flex-wrap gap-3 mb-8 font-mono font-bold text-[var(--text-mono)] text-ink dark:text-ink-dark">
+              <span className="px-3 py-1 border-[3px] border-ink dark:border-ink-dark bg-surface dark:bg-surface-dark">2+ years</span>
+              <span className="px-3 py-1 border-[3px] border-ink dark:border-ink-dark bg-surface dark:bg-surface-dark">6 shipped</span>
+              <span className="px-3 py-1 border-[3px] border-ink dark:border-ink-dark bg-surface dark:bg-surface-dark">ID · GMT+7</span>
             </motion.div>
 
-            <motion.p
-              variants={itemVariants}
-              className="text-light-muted dark:text-dark-muted text-base sm:text-lg leading-relaxed max-w-xl mx-auto lg:mx-0 mb-4"
-            >
+            <motion.p variants={item} className="font-body font-medium text-[length:var(--text-body)] text-muted dark:text-muted-dark mb-10" style={{ maxWidth: 'var(--measure-tight)' }}>
               {personalData.tagline}
             </motion.p>
 
-            <motion.p
-              variants={itemVariants}
-              className="text-light-muted dark:text-dark-muted text-sm sm:text-base leading-relaxed max-w-xl mx-auto lg:mx-0 mb-8"
-            >
-              {personalData.taglineExtended}
-            </motion.p>
-
-            {/* CTA Buttons */}
-            <motion.div
-              variants={itemVariants}
-              className="flex flex-wrap gap-4 justify-center lg:justify-start"
-            >
-              <Button onClick={handleScroll} icon={ExternalLink}>
-                View Projects
-              </Button>
-
-              <Button variant="outline" href={`mailto:${personalData.email}`}>
-                Contact Me
-              </Button>
-
-              <Button variant="ghost" href={personalData.resumeUrl} target="_blank" rel="noopener noreferrer" icon={Download}>
-                Resume
-              </Button>
+            <motion.div variants={item} className="flex flex-wrap gap-4">
+              <Button onClick={() => scrollTo('projects')} icon={ArrowRight}>View work</Button>
+              <Button variant="outline" href={`mailto:${personalData.email}`} icon={Mail}>Say hello</Button>
             </motion.div>
-          </div>
+          </motion.div>
 
-          {/* Avatar / Illustration */}
+          {/* Portrait — cols 8–12 */}
           <motion.div
-            variants={itemVariants}
-            className="flex-shrink-0"
+            variants={item}
+            className="lg:col-span-4 relative"
+            style={reduced ? undefined : { y: portraitY }}
+            onPointerMove={handlePointer}
+            onPointerLeave={resetTilt}
           >
-            <div className="relative w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80">
-              {/* Decorative ring */}
-              <div className="absolute inset-0 rounded-full border-2 border-accent/20 dark:border-accent/10 animate-[spin_20s_linear_infinite]" style={{ borderTopColor: '#14b8a6' }} />
-              <div className="absolute inset-4 rounded-full border-2 border-accent/10 dark:border-accent/5 animate-[spin_15s_linear_infinite_reverse]" style={{ borderBottomColor: '#0d9488' }} />
-
-              {/* Avatar placeholder */}
-              <div className="absolute inset-8 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 dark:from-accent/15 dark:to-accent/5 flex items-center justify-center overflow-hidden">
-                <img
-                  src={`/images/profpic.webp`}
-                  alt={personalData.name}
-                  className="w-full h-full object-cover rounded-full"
-                  onError={(e) => {
-                    e.target.style.display = 'none'
-                  }}
-                />
-              </div>
-            </div>
+            <motion.div
+              className="relative w-48 h-48 sm:w-56 sm:h-56 lg:w-full lg:h-[420px] mx-auto lg:mx-0 overflow-hidden border-[3px] border-ink dark:border-ink-dark shadow-[var(--shadow-brut-lg)] bg-accent"
+              style={reduced || !canHover ? undefined : { rotateX: tiltX, rotateY: tiltY, transformPerspective: 800 }}
+            >
+              <img
+                src="/images/profpic.webp"
+                alt={personalData.name}
+                width={800}
+                height={1000}
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
           </motion.div>
         </motion.div>
       </div>
 
-      {/* Scroll indicator */}
+      {/* Scroll cue */}
       <motion.button
-        onClick={handleScroll}
-        initial={{ opacity: 0 }}
+        onClick={() => scrollTo('about')}
+        initial={reduced ? { opacity: 1 } : { opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 0.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-light-muted dark:text-dark-muted hover:text-accent transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        transition={{ delay: reduced ? 0 : 1.6, duration: 0.5 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 p-2 rounded-none border-[3px] border-ink dark:border-ink-dark bg-paper dark:bg-paper-dark text-ink dark:text-ink-dark hover:bg-accent hover:text-black transition-colors focus-ring"
+        aria-label="Scroll to about section"
       >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
+        <motion.svg
+          width="20" height="20" viewBox="0 0 20 20" fill="none"
+          animate={reduced ? undefined : { y: [0, 6, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <ArrowDown size={20} />
-        </motion.div>
+          <path d="M10 4 L10 16 M10 16 L5 11 M10 16 L15 11" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        </motion.svg>
       </motion.button>
     </section>
   )

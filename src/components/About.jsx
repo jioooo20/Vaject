@@ -1,91 +1,98 @@
-import { motion } from 'framer-motion'
-import { User, Code, Coffee, Layers } from 'lucide-react'
+import { motion, useInView, useReducedMotion } from 'motion/react'
+import { useRef } from 'react'
 import { personalData } from '../data/portfolio'
-import SectionHeader from './SectionHeader'
-import SectionWrapper from './SectionWrapper'
+import Page from './Page'
+import SectionHeading from './SectionHeading'
+import { useCountUp } from '../hooks/useCountUp'
 
 const stats = [
-  { icon: Code, label: 'Projects', value: '6+' },
-  { icon: Layers, label: 'Technologies', value: '15+' },
-  { icon: Coffee, label: 'Experience', value: '2+ Years' },
+  { label: 'Projects', value: 6, suffix: '+' },
+  { label: 'Technologies', value: 15, suffix: '+' },
+  { label: 'Years', value: 2, suffix: '+' },
 ]
 
-export default function About() {
+function StatCounter({ value, suffix, label }) {
+  const ref = useCountUp(value)
   return (
-    <SectionWrapper>
-      <SectionHeader
-        icon={User}
-        label="About Me"
-        title="Get to Know Me"
-        subtitle="A bit about my journey as a developer"
-      />
+    <>
+      <div className="font-display font-black text-[length:var(--text-h2)] text-ink dark:text-ink-dark tabular-nums">
+        <span ref={ref}>0</span>
+        {suffix}
+      </div>
+      <div className="font-mono font-bold text-[var(--text-micro)] uppercase tracking-[0.14em] text-muted dark:text-muted-dark mt-1">
+        {label}
+      </div>
+    </>
+  )
+}
 
-      {/* Content Grid */}
-      <div className="grid lg:grid-cols-5 gap-12 lg:gap-16 items-center">
-        {/* Photo */}
+export default function About() {
+  const portraitRef = useRef(null)
+  const inView = useInView(portraitRef, { once: true, margin: '-80px' })
+  const reduced = useReducedMotion()
+
+  return (
+    <Page>
+      <SectionHeading numeral="02" label="About" title="The operator" />
+
+      <div className="grid lg:grid-cols-12 gap-10 items-start">
+        {/* Portrait — framed block */}
         <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          whileInView={{ opacity: 1, x: 0 }}
+          ref={portraitRef}
+          className="lg:col-span-4 relative mx-auto w-56 sm:w-64"
+          initial={reduced ? { opacity: 1 } : { opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-          className="lg:col-span-2 flex justify-center"
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="relative w-56 h-56 sm:w-64 sm:h-64">
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-accent/30 to-accent/10 rotate-6" />
-            <div className="absolute inset-0 rounded-2xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border overflow-hidden -rotate-3 hover:rotate-0 transition-transform duration-300">
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-accent/10 to-accent/5">
-                <img
-                  src={`/images/profpic.webp`}
-                  alt={personalData.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none'
-                  }}
-                />
-              </div>
-            </div>
+          <div className="bg-paper dark:bg-paper-dark border-[3px] border-ink dark:border-ink-dark shadow-[var(--shadow-brut-lg)]">
+            <img
+              src="/images/profpic.webp"
+              alt={personalData.name}
+              width={600}
+              height={700}
+              loading="lazy"
+              decoding="async"
+              className="w-full aspect-[6/7] object-cover border-b-[3px] border-ink dark:border-ink-dark"
+            />
+            <p className="px-3 py-2.5 text-center font-mono font-bold text-[var(--text-micro)] uppercase tracking-widest text-black bg-secondary">
+              based in Sidoarjo
+            </p>
           </div>
         </motion.div>
 
         {/* Bio */}
-        <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-          className="lg:col-span-3 space-y-4"
-        >
+        <div className="lg:col-span-8 space-y-5">
           {personalData.bio.map((paragraph, i) => (
-            <p
+            <motion.p
               key={i}
-              className="text-light-muted dark:text-dark-muted leading-relaxed"
+              className={`font-body text-[length:var(--text-body)] ${
+                i === 0
+                  ? 'font-bold text-ink dark:text-ink-dark'
+                  : 'font-medium text-muted dark:text-muted-dark'
+              }`}
+              style={{ maxWidth: 'var(--measure)' }}
+              initial={reduced ? { opacity: 1 } : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
             >
               {paragraph}
-            </p>
+            </motion.p>
           ))}
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-6">
-            {stats.map((stat) => (
+          <div className="flex flex-wrap gap-5 pt-8">
+            {stats.map((s) => (
               <div
-                key={stat.label}
-                className="p-4 rounded-xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border text-center hover:border-accent/30 transition-colors duration-200"
+                key={s.label}
+                className="border-[3px] border-ink dark:border-ink-dark bg-surface dark:bg-surface-dark px-5 py-4 shadow-[var(--shadow-brut)]"
               >
-                <stat.icon
-                  size={20}
-                  className="mx-auto mb-2 text-accent"
-                />
-                <div className="text-xl font-bold text-light-text dark:text-dark-text">
-                  {stat.value}
-                </div>
-                <div className="text-xs text-light-muted dark:text-dark-muted mt-1">
-                  {stat.label}
-                </div>
+                <StatCounter {...s} />
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
-    </SectionWrapper>
+    </Page>
   )
 }

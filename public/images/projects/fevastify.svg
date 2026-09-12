@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Fevastify project placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbf7f2"/>
+      <stop offset="1" stop-color="#f5ede4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1200" height="14" fill="#c9a672"/>
+  <g opacity="0.07" fill="#c9a672">
+    <path d="M900 120 L1020 240 L900 360 L780 240 Z"/>
+    <path d="M180 560 L300 680 L180 800 L60 680 Z"/>
+  </g>
+  <text x="80" y="360" font-family="Sora, sans-serif" font-size="100" font-weight="700" fill="#2d1f14" letter-spacing="-3">Fevastify</text>
+  <text x="84" y="430" font-family="Outfit, sans-serif" font-size="34" fill="#8b7a67" letter-spacing="6">TYPE-SAFE ARCHITECTURE</text>
+  <rect x="82" y="480" width="140" height="4" fill="#c9a672"/>
+  <text x="84" y="560" font-family="JetBrains Mono, monospace" font-size="26" fill="#8b7a67">TypeScript · Node.js</text>
+  <text x="80" y="740" font-family="JetBrains Mono, monospace" font-size="24" fill="#c9a672" letter-spacing="4">VAJECT / 05</text>
+</svg>

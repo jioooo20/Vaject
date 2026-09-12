@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { ArrowUp } from 'lucide-react'
 
+/**
+ * Back-to-top — hard-edged accent square with offset shadow.
+ */
 export default function BackToTop() {
   const [visible, setVisible] = useState(false)
+  const reduced = useReducedMotion()
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 400)
@@ -11,18 +15,26 @@ export default function BackToTop() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  const handleClick = () => {
+    if (window.__lenis) {
+      window.__lenis.scrollTo(0)
+    } else {
+      window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
+    }
+  }
+
   return (
     <AnimatePresence>
       {visible && (
         <motion.button
-          initial={{ opacity: 0, scale: 0.5 }}
+          initial={reduced ? { opacity: 1 } : { opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.5 }}
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 z-40 p-3 rounded-full bg-accent text-white shadow-lg shadow-accent/25 hover:bg-accent-hover transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.8 }}
+          onClick={handleClick}
+          className="fixed bottom-6 right-6 z-40 p-3 rounded-none border-[3px] border-ink dark:border-ink-dark bg-accent text-black shadow-[var(--shadow-brut)] hover:shadow-[var(--shadow-brut-lg)] hover:-translate-x-[2px] hover:-translate-y-[2px] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all duration-150 focus-ring"
           aria-label="Back to top"
         >
-          <ArrowUp size={20} />
+          <ArrowUp size={18} strokeWidth={2.5} />
         </motion.button>
       )}
     </AnimatePresence>
