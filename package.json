@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "Portfolio website of Giovano Alkandri — Fullstack Engineer",
+  "homepage": "https://alkio.my.id",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -30,6 +31,7 @@
     "tw-animate-css": "^1.4.0"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^6.0.3",
     "tailwindcss": "^4.3.3",

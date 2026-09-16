@@ -56,7 +56,7 @@ export default function About() {
               className="w-full aspect-[6/7] object-cover border-b-[3px] border-ink dark:border-ink-dark"
             />
             <p className="px-3 py-2.5 text-center font-mono font-bold text-[var(--text-micro)] uppercase tracking-widest text-black bg-secondary">
-              based in Sidoarjo
+              based in Malang
             </p>
           </div>
         </motion.div>

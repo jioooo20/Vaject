@@ -5,12 +5,6 @@ import { navLinks } from '../data/portfolio'
 import ThemeToggle from './ThemeToggle'
 import ScrollProgress from './ScrollProgress'
 
-const mark = (
-  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-    <rect x="1.5" y="1.5" width="21" height="21" fill="var(--color-accent)" stroke="currentColor" strokeWidth="3" />
-  </svg>
-)
-
 function NavLink({ link, active }) {
   return (
     <a
@@ -59,11 +53,10 @@ export default function Navbar({ activeSection }) {
     >
       <div className="max-w-6xl mx-auto" style={{ paddingInline: 'var(--gutter)' }}>
         <div className="flex items-center justify-between h-16">
-          <a href="#home" className="flex items-center gap-2.5 focus-ring rounded-none" aria-label="Vaject home">
-            <span className="text-ink dark:text-ink-dark">{mark}</span>
-            <span className="font-display font-black uppercase text-lg text-ink dark:text-ink-dark">
-              Vaject
-            </span>
+          <a href="#home" className="flex items-center gap-2.5 focus-ring rounded-none" aria-label="Alkio home">
+            <img src="/images/logos/alkio-logo-icon.png" alt="" aria-hidden="true" className="h-8 w-8 object-contain" />
+            <img src="/images/logos/alkio-name-dark-icon.png" alt="Alkio" className="h-5 w-auto object-contain dark:hidden" />
+            <img src="/images/logos/alkio-name-white-icon.png" alt="" aria-hidden="true" className="hidden h-5 w-auto object-contain dark:block" />
           </a>
 
           <div className="hidden md:flex items-center gap-3">

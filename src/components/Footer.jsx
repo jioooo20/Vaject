@@ -1,12 +1,6 @@
 import { GitBranch, Globe, Mail } from 'lucide-react'
 import Marquee from './Marquee'
 
-const mark = (
-  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-    <rect x="1.5" y="1.5" width="21" height="21" fill="var(--color-accent)" stroke="currentColor" strokeWidth="3" />
-  </svg>
-)
-
 const TECH = ['REACT', 'LARAVEL', 'NESTJS', 'DOCKER', 'POSTGRES', 'LINUX']
 
 export default function Footer() {
@@ -33,11 +27,10 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto py-12" style={{ paddingInline: 'var(--gutter)' }}>
         <div className="grid sm:grid-cols-3 gap-8 mb-8">
           <div>
-            <a href="#home" className="flex items-center gap-2.5 focus-ring rounded-none w-fit">
-              <span className="text-ink dark:text-ink-dark">{mark}</span>
-              <span className="font-display font-black uppercase text-ink dark:text-ink-dark">
-                Vaject
-              </span>
+            <a href="#home" className="flex items-center gap-2.5 focus-ring rounded-none w-fit" aria-label="Alkio home">
+              <img src="/images/logos/alkio-logo-icon.png" alt="" aria-hidden="true" className="h-8 w-8 object-contain" />
+              <img src="/images/logos/alkio-name-dark-icon.png" alt="Alkio" className="h-5 w-auto object-contain dark:hidden" />
+              <img src="/images/logos/alkio-name-white-icon.png" alt="" aria-hidden="true" className="hidden h-5 w-auto object-contain dark:block" />
             </a>
             <p className="font-body font-medium text-sm text-muted dark:text-muted-dark mt-3">
               Fullstack Engineer &amp; DevOps enthusiast from Indonesia.
